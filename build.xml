@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="MPSS" default="war" basedir=".">
+
+    <description>
+        Music Playlist Sharing System - Ant Build Script
+    </description>
+
+    <!-- Properties -->
+    <property name="src.dir" value="src/main/java"/>
+    <property name="web.dir" value="src/main/webapp"/>
+    <property name="build.dir" value="build"/>
+    <property name="classes.dir" value="${build.dir}/WEB-INF/classes"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="dist.dir" value="dist"/>
+    <property name="app.name" value="MPSS"/>
+
+    <!-- Tomcat lib path - adjust as needed -->
+    <property name="tomcat.home" value="/opt/tomcat"/>
+
+    <!-- Classpath -->
+    <path id="compile.classpath">
+        <fileset dir="${lib.dir}" includes="*.jar" erroronmissingdir="false"/>
+        <fileset dir="${tomcat.home}/lib" includes="*.jar" erroronmissingdir="false"/>
+    </path>
+
+    <!-- Clean -->
+    <target name="clean" description="Clean build directories">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+
+    <!-- Prepare -->
+    <target name="prepare" description="Create build directories">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${dist.dir}"/>
+        <mkdir dir="${lib.dir}"/>
+    </target>
+
+    <!-- Compile -->
+    <target name="compile" depends="prepare" description="Compile Java sources">
+        <javac srcdir="${src.dir}"
+               destdir="${classes.dir}"
+               classpathref="compile.classpath"
+               includeantruntime="false"
+               debug="true"
+               encoding="UTF-8">
+        </javac>
+    </target>
+
+    <!-- WAR -->
+    <target name="war" depends="compile" description="Build WAR file">
+        <!-- Copy web resources -->
+        <copy todir="${build.dir}">
+            <fileset dir="${web.dir}"/>
+        </copy>
+
+        <!-- Copy libraries -->
+        <mkdir dir="${build.dir}/WEB-INF/lib"/>
+        <copy todir="${build.dir}/WEB-INF/lib" failonerror="false">
+            <fileset dir="${lib.dir}" includes="*.jar"/>
+        </copy>
+
+        <!-- Create WAR -->
+        <war destfile="${dist.dir}/${app.name}.war"
+             webxml="${build.dir}/WEB-INF/web.xml"
+             basedir="${build.dir}">
+        </war>
+
+        <echo message="WAR file created: ${dist.dir}/${app.name}.war"/>
+    </target>
+
+    <!-- Deploy to Tomcat -->
+    <target name="deploy" depends="war" description="Deploy WAR to Tomcat">
+        <copy file="${dist.dir}/${app.name}.war"
+              todir="${tomcat.home}/webapps"
+              overwrite="true"/>
+        <echo message="Deployed to ${tomcat.home}/webapps/${app.name}.war"/>
+    </target>
+
+</project>
