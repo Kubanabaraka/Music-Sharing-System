@@ -207,35 +207,41 @@ The system defines two distinct user roles, each with specific permissions.
 ### 5.4 Use Case Descriptions
 
 **Use Case 1: Register Account**
+
 - Actor: Unregistered Visitor
 - Precondition: Visitor has accessed the registration page.
 - Main Flow: The visitor enters a full name, username, email, password, and password confirmation. The system validates all fields, checks for duplicate username and email, hashes the password, creates the user record, and redirects to the login page with a success message.
 - Alternate Flow: If validation fails or duplicates are detected, the system redisplays the form with error messages and preserved input values.
 
 **Use Case 2: Authenticate User**
+
 - Actor: Registered User
 - Precondition: User has a valid account.
 - Main Flow: The user enters their username and password. The system verifies the credentials against the database, checks account active status, creates an HTTP session, and redirects to the appropriate dashboard.
 - Alternate Flow: If credentials are invalid, the system displays an error. If the account is deactivated, a specific deactivation message is shown.
 
 **Use Case 3: Create Playlist**
+
 - Actor: Authenticated User
 - Precondition: User is logged in.
 - Main Flow: The user navigates to the create playlist form, enters a title, optional description, selects a genre and visibility setting, and submits the form. The system creates the playlist and redirects to the playlists page with a success message.
 - Alternate Flow: If required fields are missing, the form is redisplayed with validation errors and preserved inputs.
 
 **Use Case 4: Add Song to Playlist**
+
 - Actor: Playlist Owner
 - Precondition: User owns the target playlist.
 - Main Flow: The user views a playlist and uses the add song form to enter a title, artist, optional album, and duration. The system validates the input, creates the song record, and refreshes the playlist view.
 - Alternate Flow: If validation fails, the user is redirected back with an error message.
 
 **Use Case 5: Explore Public Playlists**
+
 - Actor: Authenticated User
 - Precondition: User is logged in.
 - Main Flow: The user navigates to the explore page. The system retrieves all public playlists and displays them with title, owner, genre, and song count. The user may optionally enter a search query to filter results.
 
 **Use Case 6: Manage Users (Admin)**
+
 - Actor: Administrator
 - Precondition: User is logged in with ADMIN role.
 - Main Flow: The administrator navigates to the user management page. The system displays all registered users with their status. The administrator may activate or deactivate accounts, or delete user accounts.
@@ -417,7 +423,7 @@ Authentication in the MPSS system is implemented through a combination of the Au
 
 When a user submits login credentials, the AuthServlet retrieves the corresponding user record from the database by querying with the username and the SHA-256 hash of the provided password. If a matching record is found, the servlet checks whether the account is active. For active accounts, an HttpSession is created and the User object is stored as a session attribute named "currentUser". The session's maximum inactive interval is set to 1800 seconds (30 minutes), after which the session automatically expires.
 
-The AuthFilter, annotated with @WebFilter, intercepts all requests to protected URLs (/dashboard, /playlist, /playlists, /song, /explore, /admin/*). For each intercepted request, the filter checks whether an HttpSession exists and contains a "currentUser" attribute. If the user is not authenticated, the filter redirects to the login page. For requests to administrative URLs (containing "/admin"), the filter additionally verifies that the authenticated user has the ADMIN role, redirecting non-administrators to the regular dashboard.
+The AuthFilter, annotated with @WebFilter, intercepts all requests to protected URLs (/dashboard, /playlist, /playlists, /song, /explore, /admin/\*). For each intercepted request, the filter checks whether an HttpSession exists and contains a "currentUser" attribute. If the user is not authenticated, the filter redirects to the login page. For requests to administrative URLs (containing "/admin"), the filter additionally verifies that the authenticated user has the ADMIN role, redirecting non-administrators to the regular dashboard.
 
 Logout is handled by invalidating the session and redirecting to the login page. The session invalidation ensures that all session data is cleared and the session ID is retired.
 
@@ -551,53 +557,53 @@ Testing of the Music Playlist Sharing System was conducted through a systematic 
 
 The following table presents the comprehensive test cases executed for the MPSS system, along with their expected and actual results.
 
-| Test Case ID | Description | Expected Result | Actual Result | Status |
-|:---:|---|---|---|:---:|
-| TC-01 | Access home page (/) without authentication | Landing page displayed with login/register links | Landing page displayed correctly | PASS |
-| TC-02 | Access /login page | Login form displayed with username and password fields | Login form displayed correctly | PASS |
-| TC-03 | Access /register page | Registration form displayed with all required fields | Registration form displayed correctly | PASS |
-| TC-04 | Login with valid admin credentials (admin/admin123) | Redirect to /admin/dashboard | Redirected to admin dashboard (HTTP 302) | PASS |
-| TC-05 | Login with valid user credentials (alice/user123) | Redirect to /dashboard | Redirected to user dashboard (HTTP 302) | PASS |
-| TC-06 | Login with invalid credentials | Error message "Invalid username or password" displayed | Error message displayed on login form | PASS |
-| TC-07 | Login with empty username field | Error message "Username and password are required" displayed | Validation error displayed | PASS |
-| TC-08 | Login with deactivated account | Error message "Your account has been deactivated" displayed | Deactivation message displayed correctly | PASS |
-| TC-09 | Register with valid details | Redirect to login page with success message | Registration succeeded, redirected to login | PASS |
-| TC-10 | Register with existing username | Error message "Username already taken" displayed | Duplicate username error displayed | PASS |
-| TC-11 | Register with existing email | Error message "Email already registered" displayed | Duplicate email error displayed | PASS |
-| TC-12 | Register with password less than 6 characters | Error message about password length | Password length error displayed | PASS |
-| TC-13 | Register with non-matching passwords | Error message "Passwords do not match" | Password mismatch error displayed | PASS |
-| TC-14 | Register with invalid email format | Error message about invalid email | Email format error displayed | PASS |
-| TC-15 | Access /dashboard without authentication | Redirect to /login page | Redirected to login (AuthFilter) | PASS |
-| TC-16 | Access /admin/dashboard as regular user | Redirect to /dashboard | Redirected to user dashboard (AuthFilter) | PASS |
-| TC-17 | View user dashboard after login | Dashboard with statistics and playlists displayed | Dashboard displayed with correct data | PASS |
-| TC-18 | View My Playlists page | List of user's playlists displayed | Playlists displayed in card grid | PASS |
-| TC-19 | Create new playlist with valid data | Playlist created, redirect to playlists with success message | Playlist created, success alert shown (HTTP 302) | PASS |
-| TC-20 | Create playlist with empty title | Validation error "Playlist title is required" | Error message displayed, form preserved | PASS |
-| TC-21 | Create playlist with empty genre | Validation error "Genre is required" | Error message displayed | PASS |
-| TC-22 | Edit existing playlist | Edit form pre-populated with current values | Form displayed with existing values | PASS |
-| TC-23 | Update playlist with valid changes | Playlist updated, redirect to playlist view | Playlist updated successfully | PASS |
-| TC-24 | Delete own playlist | Playlist removed, redirect to playlists with success message | Playlist deleted, success message shown | PASS |
-| TC-25 | View playlist details | Playlist metadata and song list displayed | Full playlist view rendered correctly | PASS |
-| TC-26 | Add song to playlist with valid data | Song added, playlist view refreshed with new song | Song added, page refreshed with new entry | PASS |
-| TC-27 | Add song with missing title | Validation error displayed | Validation error message shown | PASS |
-| TC-28 | Add song with invalid duration format | Validation error about duration format | Format error displayed | PASS |
-| TC-29 | Delete song from playlist | Song removed, playlist view refreshed | Song deleted from playlist | PASS |
-| TC-30 | Access Explore page | All public playlists displayed | Public playlists displayed in card grid | PASS |
-| TC-31 | Search playlists on Explore page | Filtered results matching search query | Matching playlists displayed | PASS |
-| TC-32 | Attempt to edit another user's playlist | Redirect to own playlists page | Redirected, no unauthorised edit | PASS |
-| TC-33 | Attempt to delete another user's playlist | Redirect to own playlists page | Redirected, playlist not deleted | PASS |
-| TC-34 | View private playlist as non-owner | Access denied, redirect with error | Redirected, private playlist not shown | PASS |
-| TC-35 | Admin view all users | Users table with all accounts displayed | All users displayed with correct details | PASS |
-| TC-36 | Admin toggle user active status | User status toggled (active to inactive or vice versa) | Status toggled correctly | PASS |
-| TC-37 | Admin delete user account | User and cascaded data removed | User deleted, playlists and songs cascaded | PASS |
-| TC-38 | Admin attempt to delete own account | Self-deletion prevented, redirect | Admin account preserved | PASS |
-| TC-39 | Admin view all playlists | All playlists displayed regardless of visibility | All playlists listed | PASS |
-| TC-40 | Admin delete any playlist | Playlist removed regardless of ownership | Playlist deleted | PASS |
-| TC-41 | Logout | Session invalidated, redirect to login | Logged out, redirected to login page | PASS |
-| TC-42 | Session timeout after 30 minutes inactivity | Session expired, redirect to login on next request | Session expired correctly | PASS |
-| TC-43 | Access non-existent page (HTTP 404) | Custom error page displayed | Styled error page shown | PASS |
-| TC-44 | Create public playlist and verify on Explore | Playlist appears on Explore for other users | Public playlist visible to all authenticated users | PASS |
-| TC-45 | Create private playlist and verify on Explore | Playlist does not appear on Explore page | Private playlist hidden from Explore | PASS |
+| Test Case ID | Description                                         | Expected Result                                              | Actual Result                                      | Status |
+| :----------: | --------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------- | :----: |
+|    TC-01     | Access home page (/) without authentication         | Landing page displayed with login/register links             | Landing page displayed correctly                   |  PASS  |
+|    TC-02     | Access /login page                                  | Login form displayed with username and password fields       | Login form displayed correctly                     |  PASS  |
+|    TC-03     | Access /register page                               | Registration form displayed with all required fields         | Registration form displayed correctly              |  PASS  |
+|    TC-04     | Login with valid admin credentials (admin/admin123) | Redirect to /admin/dashboard                                 | Redirected to admin dashboard (HTTP 302)           |  PASS  |
+|    TC-05     | Login with valid user credentials (alice/user123)   | Redirect to /dashboard                                       | Redirected to user dashboard (HTTP 302)            |  PASS  |
+|    TC-06     | Login with invalid credentials                      | Error message "Invalid username or password" displayed       | Error message displayed on login form              |  PASS  |
+|    TC-07     | Login with empty username field                     | Error message "Username and password are required" displayed | Validation error displayed                         |  PASS  |
+|    TC-08     | Login with deactivated account                      | Error message "Your account has been deactivated" displayed  | Deactivation message displayed correctly           |  PASS  |
+|    TC-09     | Register with valid details                         | Redirect to login page with success message                  | Registration succeeded, redirected to login        |  PASS  |
+|    TC-10     | Register with existing username                     | Error message "Username already taken" displayed             | Duplicate username error displayed                 |  PASS  |
+|    TC-11     | Register with existing email                        | Error message "Email already registered" displayed           | Duplicate email error displayed                    |  PASS  |
+|    TC-12     | Register with password less than 6 characters       | Error message about password length                          | Password length error displayed                    |  PASS  |
+|    TC-13     | Register with non-matching passwords                | Error message "Passwords do not match"                       | Password mismatch error displayed                  |  PASS  |
+|    TC-14     | Register with invalid email format                  | Error message about invalid email                            | Email format error displayed                       |  PASS  |
+|    TC-15     | Access /dashboard without authentication            | Redirect to /login page                                      | Redirected to login (AuthFilter)                   |  PASS  |
+|    TC-16     | Access /admin/dashboard as regular user             | Redirect to /dashboard                                       | Redirected to user dashboard (AuthFilter)          |  PASS  |
+|    TC-17     | View user dashboard after login                     | Dashboard with statistics and playlists displayed            | Dashboard displayed with correct data              |  PASS  |
+|    TC-18     | View My Playlists page                              | List of user's playlists displayed                           | Playlists displayed in card grid                   |  PASS  |
+|    TC-19     | Create new playlist with valid data                 | Playlist created, redirect to playlists with success message | Playlist created, success alert shown (HTTP 302)   |  PASS  |
+|    TC-20     | Create playlist with empty title                    | Validation error "Playlist title is required"                | Error message displayed, form preserved            |  PASS  |
+|    TC-21     | Create playlist with empty genre                    | Validation error "Genre is required"                         | Error message displayed                            |  PASS  |
+|    TC-22     | Edit existing playlist                              | Edit form pre-populated with current values                  | Form displayed with existing values                |  PASS  |
+|    TC-23     | Update playlist with valid changes                  | Playlist updated, redirect to playlist view                  | Playlist updated successfully                      |  PASS  |
+|    TC-24     | Delete own playlist                                 | Playlist removed, redirect to playlists with success message | Playlist deleted, success message shown            |  PASS  |
+|    TC-25     | View playlist details                               | Playlist metadata and song list displayed                    | Full playlist view rendered correctly              |  PASS  |
+|    TC-26     | Add song to playlist with valid data                | Song added, playlist view refreshed with new song            | Song added, page refreshed with new entry          |  PASS  |
+|    TC-27     | Add song with missing title                         | Validation error displayed                                   | Validation error message shown                     |  PASS  |
+|    TC-28     | Add song with invalid duration format               | Validation error about duration format                       | Format error displayed                             |  PASS  |
+|    TC-29     | Delete song from playlist                           | Song removed, playlist view refreshed                        | Song deleted from playlist                         |  PASS  |
+|    TC-30     | Access Explore page                                 | All public playlists displayed                               | Public playlists displayed in card grid            |  PASS  |
+|    TC-31     | Search playlists on Explore page                    | Filtered results matching search query                       | Matching playlists displayed                       |  PASS  |
+|    TC-32     | Attempt to edit another user's playlist             | Redirect to own playlists page                               | Redirected, no unauthorised edit                   |  PASS  |
+|    TC-33     | Attempt to delete another user's playlist           | Redirect to own playlists page                               | Redirected, playlist not deleted                   |  PASS  |
+|    TC-34     | View private playlist as non-owner                  | Access denied, redirect with error                           | Redirected, private playlist not shown             |  PASS  |
+|    TC-35     | Admin view all users                                | Users table with all accounts displayed                      | All users displayed with correct details           |  PASS  |
+|    TC-36     | Admin toggle user active status                     | User status toggled (active to inactive or vice versa)       | Status toggled correctly                           |  PASS  |
+|    TC-37     | Admin delete user account                           | User and cascaded data removed                               | User deleted, playlists and songs cascaded         |  PASS  |
+|    TC-38     | Admin attempt to delete own account                 | Self-deletion prevented, redirect                            | Admin account preserved                            |  PASS  |
+|    TC-39     | Admin view all playlists                            | All playlists displayed regardless of visibility             | All playlists listed                               |  PASS  |
+|    TC-40     | Admin delete any playlist                           | Playlist removed regardless of ownership                     | Playlist deleted                                   |  PASS  |
+|    TC-41     | Logout                                              | Session invalidated, redirect to login                       | Logged out, redirected to login page               |  PASS  |
+|    TC-42     | Session timeout after 30 minutes inactivity         | Session expired, redirect to login on next request           | Session expired correctly                          |  PASS  |
+|    TC-43     | Access non-existent page (HTTP 404)                 | Custom error page displayed                                  | Styled error page shown                            |  PASS  |
+|    TC-44     | Create public playlist and verify on Explore        | Playlist appears on Explore for other users                  | Public playlist visible to all authenticated users |  PASS  |
+|    TC-45     | Create private playlist and verify on Explore       | Playlist does not appear on Explore page                     | Private playlist hidden from Explore               |  PASS  |
 
 ### 7.3 Validation Testing
 
@@ -691,37 +697,37 @@ Further enhancements could include collaborative playlists allowing multiple use
 
 ## 10. References
 
-Apache Software Foundation (2024) *Apache Tomcat 10 Documentation.* Available at: https://tomcat.apache.org/tomcat-10.1-doc/index.html (Accessed: February 2026).
+Apache Software Foundation (2024) _Apache Tomcat 10 Documentation._ Available at: https://tomcat.apache.org/tomcat-10.1-doc/index.html (Accessed: February 2026).
 
-Apple Developer Documentation (2024) *MusicKit and Apple Music API.* Available at: https://developer.apple.com/musickit/ (Accessed: February 2026).
+Apple Developer Documentation (2024) _MusicKit and Apple Music API._ Available at: https://developer.apple.com/musickit/ (Accessed: February 2026).
 
-Bauer, C. and King, G. (2015) *Java Persistence with Hibernate.* 2nd edn. Manning Publications.
+Bauer, C. and King, G. (2015) _Java Persistence with Hibernate._ 2nd edn. Manning Publications.
 
-Fowler, M. (2002) *Patterns of Enterprise Application Architecture.* Addison-Wesley Professional.
+Fowler, M. (2002) _Patterns of Enterprise Application Architecture._ Addison-Wesley Professional.
 
-Gamma, E., Helm, R., Johnson, R. and Vlissides, J. (1994) *Design Patterns: Elements of Reusable Object-Oriented Software.* Addison-Wesley Professional.
+Gamma, E., Helm, R., Johnson, R. and Vlissides, J. (1994) _Design Patterns: Elements of Reusable Object-Oriented Software._ Addison-Wesley Professional.
 
-Google Developers (2024) *YouTube Data API Reference.* Available at: https://developers.google.com/youtube/v3 (Accessed: February 2026).
+Google Developers (2024) _YouTube Data API Reference._ Available at: https://developers.google.com/youtube/v3 (Accessed: February 2026).
 
-Jakarta EE (2024) *Jakarta Servlet Specification 6.0.* Available at: https://jakarta.ee/specifications/servlet/6.0/ (Accessed: February 2026).
+Jakarta EE (2024) _Jakarta Servlet Specification 6.0._ Available at: https://jakarta.ee/specifications/servlet/6.0/ (Accessed: February 2026).
 
-Jakarta EE (2024) *Jakarta Server Pages Specification 3.1.* Available at: https://jakarta.ee/specifications/pages/3.1/ (Accessed: February 2026).
+Jakarta EE (2024) _Jakarta Server Pages Specification 3.1._ Available at: https://jakarta.ee/specifications/pages/3.1/ (Accessed: February 2026).
 
-Juneau, J. (2022) *Jakarta EE Recipes: A Problem-Solution Approach.* 2nd edn. Apress.
+Juneau, J. (2022) _Jakarta EE Recipes: A Problem-Solution Approach._ 2nd edn. Apress.
 
-Murach, J. and Urban, M. (2020) *Murach's Java Servlets and JSP.* 3rd edn. Mike Murach & Associates.
+Murach, J. and Urban, M. (2020) _Murach's Java Servlets and JSP._ 3rd edn. Mike Murach & Associates.
 
-Oracle Corporation (2023) *JDBC — Java Database Connectivity.* Available at: https://docs.oracle.com/javase/tutorial/jdbc/ (Accessed: February 2026).
+Oracle Corporation (2023) _JDBC — Java Database Connectivity._ Available at: https://docs.oracle.com/javase/tutorial/jdbc/ (Accessed: February 2026).
 
-Oracle Corporation (2023) *The Java Tutorials — Servlets.* Available at: https://docs.oracle.com/javaee/7/tutorial/servlets.htm (Accessed: February 2026).
+Oracle Corporation (2023) _The Java Tutorials — Servlets._ Available at: https://docs.oracle.com/javaee/7/tutorial/servlets.htm (Accessed: February 2026).
 
-PostgreSQL Global Development Group (2024) *PostgreSQL 14 Documentation.* Available at: https://www.postgresql.org/docs/14/ (Accessed: February 2026).
+PostgreSQL Global Development Group (2024) _PostgreSQL 14 Documentation._ Available at: https://www.postgresql.org/docs/14/ (Accessed: February 2026).
 
-Reenskaug, T. (1979) *Models — Views — Controllers.* Technical Note, Xerox PARC.
+Reenskaug, T. (1979) _Models — Views — Controllers._ Technical Note, Xerox PARC.
 
-Spotify Engineering (2023) *Spotify Engineering Blog.* Available at: https://engineering.atspotify.com/ (Accessed: February 2026).
+Spotify Engineering (2023) _Spotify Engineering Blog._ Available at: https://engineering.atspotify.com/ (Accessed: February 2026).
 
-Sun Microsystems (2002) *Core J2EE Patterns: Data Access Object.* Available at: https://www.oracle.com/java/technologies/dataaccessobject.html (Accessed: February 2026).
+Sun Microsystems (2002) _Core J2EE Patterns: Data Access Object._ Available at: https://www.oracle.com/java/technologies/dataaccessobject.html (Accessed: February 2026).
 
 ---
 
@@ -803,4 +809,4 @@ The following screenshot shows the project's library dependencies in the WEB-INF
 
 ---
 
-*End of Report*
+_End of Report_
